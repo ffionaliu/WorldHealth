@@ -20,6 +20,40 @@ ul.task-list li input[type="checkbox"] {
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
 }
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
 </style>
 
 
@@ -178,9 +212,84 @@ ul.task-list li input[type="checkbox"] {
 
 <section id="description" class="level2" data-number="2.1">
 <h2 data-number="2.1" class="anchored" data-anchor-id="description"><span class="header-section-number">2.1</span> Description</h2>
+<p>The dataset selected for this project is the WHO Global Health Observatory (GHO) dataset, which provides comprehensive health-related statistics across 198 countries, territories, and areas. The data, sourced from the GHO portal API, is updated annually, with the latest extraction in September 2024. This dataset includes 138 indicators spanning various health domains, including alcohol use, environmental health, healthcare systems, life expectancy, and noncommunicable diseases. It also incorporates dimensions of inequality, such as age, economic status, household composition, place of residence, and sex, enabling detailed equity-focused analyses.</p>
+<p>The dataset is provided in <code>.xlsx</code> format, with columns representing variables and rows corresponding to observations. Key variables include <code>setting</code>, denoting the geographic region or country; <code>date</code>, indicating the year of observation; and <code>indicator_abbr</code> and <code>indicator_name</code>, which identify and describe the health indicators. Other critical variables include <code>estimate</code>, representing the indicator’s value; <code>ci_lb</code> and <code>ci_ub</code>, providing the lower and upper bounds of the confidence intervals; and <code>setting_average</code>, summarizing average values within settings. Additional variables, such as <code>favourable_indicator</code>, <code>indicator_scale</code>, and <code>ordered_dimension</code>, assist in interpreting indicator data. Variables like <code>whoreg6</code> and <code>wbincome2024</code> categorize countries by WHO region and World Bank income classification, respectively.</p>
+<p>The dataset’s diverse variables and structured format enable a wide range of analyses, from tracking global trends to exploring the impact of environmental, personal, and socioeconomic factors on life expectancy. Its compatibility with analytical tools like R ensures that the data can be readily processed, explored, and visualized. These attributes make the GHO dataset a robust resource for studying global health patterns and identifying determinants of life expectancy across diverse contexts.</p>
 </section>
 <section id="missing-value-analysis" class="level2" data-number="2.2">
 <h2 data-number="2.2" class="anchored" data-anchor-id="missing-value-analysis"><span class="header-section-number">2.2</span> Missing value analysis</h2>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(readxl)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(naniar)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>data <span class="ot">&lt;-</span> <span class="fu">read_excel</span>(<span class="st">"/Users/maliwang/Desktop/Course/stat5702/rep_gho/data.xlsx"</span>)</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="fu">vis_miss</span>(data, <span class="at">warn_large_data =</span> <span class="cn">FALSE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="data_files/figure-html/unnamed-chunk-1-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>The analysis of missing data in the dataset reveals several important patterns that guide its usability for further analysis. Notably, three columns <code>se</code>, <code>population</code>, and <code>flag</code> are entirely missing, providing no usable information. These columns are strong candidates for removal unless their absence can be explained or they are deemed relevant for specific indicators.</p>
+<p>Other columns, such as <code>estimate</code>, <code>ci_lb</code>, and <code>ci_ub</code>, exhibit partial missingness, with approximately 1% to 11% of their values missing. These columns are integral to quantitative analyses and will require careful handling, either through imputation techniques or exclusion of incomplete records, depending on their importance and the extent of missingness in the analysis context.</p>
+<p>Key columns, including <code>setting</code>, <code>date</code>, <code>indicator_abbr</code>, and <code>indicator_name</code>, are fully populated with 0% missing values, ensuring their reliability for supporting robust analyses. Furthermore, columns such as <code>iso3</code>, <code>wbincome2024</code>, and <code>whoreg6</code> have minimal missing values, with less than 2% of their entries incomplete. This level of missingness poses no significant challenges to the analysis and is unlikely to bias results.</p>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stderr">
+<pre><code>
+Attaching package: 'dplyr'</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>The following objects are masked from 'package:stats':
+
+    filter, lag</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>The following objects are masked from 'package:base':
+
+    intersect, setdiff, setequal, union</code></pre>
+</div>
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(stringr)</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>missing_summary <span class="ot">&lt;-</span> data <span class="sc">|&gt;</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(indicator_name) <span class="sc">|&gt;</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">MissingPercent =</span> <span class="fu">mean</span>(<span class="fu">is.na</span>(estimate)), <span class="at">.groups =</span> <span class="st">"drop"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(MissingPercent <span class="sc">&gt;</span> <span class="dv">0</span>) <span class="sc">|&gt;</span></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(<span class="fu">desc</span>(MissingPercent)) </span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a><span class="co"># Create a bar plot</span></span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(missing_summary, <span class="fu">aes</span>(<span class="at">x =</span> <span class="fu">reorder</span>(indicator_name, MissingPercent), <span class="at">y =</span> MissingPercent)) <span class="sc">+</span></span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_bar</span>(<span class="at">stat =</span> <span class="st">"identity"</span>, <span class="at">fill =</span> <span class="st">"skyblue"</span>) <span class="sc">+</span></span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">coord_flip</span>() <span class="sc">+</span>  <span class="co"># Flip the coordinates for better readability</span></span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">"Indicator Abbreviation"</span>,</span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">"Missing Percentage"</span>,</span>
+<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Missing Percentage by Indicator Name (Filtered)"</span></span>
+<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span></span>
+<span id="cb6-19"><a href="#cb6-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">axis.text.y =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">8</span>))<span class="sc">+</span></span>
+<span id="cb6-20"><a href="#cb6-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_continuous</span>(<span class="at">labels =</span> scales<span class="sc">::</span><span class="fu">percent_format</span>())</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="data_files/figure-html/unnamed-chunk-2-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>The analysis above focused on how missing values in the <code>estimate</code> column are distributed across different indicators, as indicators with excessive missingness cannot be reliably used for analysis. The visualization of missing data highlights notable patterns across indicators with non-zero proportions of missingness in the estimate column. A thematic review reveals that indicators related to alcohol and tobacco use, as well as accessibility to assistive products, account for the majority of the missing data. Behavioral health indicators, such as smoking and e-cigarette use, often rely on specific surveys or self-reported data, which may not be systematically collected or consistently available across all regions. The significant absence of critical behavioral health indicators, particularly those pertaining to alcohol and tobacco use, poses a challenge to effective monitoring and intervention, limiting the ability to address associated health risks on a global scale.</p>
 
 
 </section>

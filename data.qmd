@@ -2,4 +2,51 @@
 
 ## Description
 
+The dataset selected for this project is the WHO Global Health Observatory (GHO) dataset, which provides comprehensive health-related statistics across 198 countries, territories, and areas. The data, sourced from the GHO portal API, is updated annually, with the latest extraction in September 2024. This dataset includes 138 indicators spanning various health domains, including alcohol use, environmental health, healthcare systems, life expectancy, and noncommunicable diseases. It also incorporates dimensions of inequality, such as age, economic status, household composition, place of residence, and sex, enabling detailed equity-focused analyses.
+
+The dataset is provided in `.xlsx` format, with columns representing variables and rows corresponding to observations. Key variables include `setting`, denoting the geographic region or country; `date`, indicating the year of observation; and `indicator_abbr` and `indicator_name`, which identify and describe the health indicators. Other critical variables include `estimate`, representing the indicator's value; `ci_lb` and `ci_ub`, providing the lower and upper bounds of the confidence intervals; and `setting_average`, summarizing average values within settings. Additional variables, such as `favourable_indicator`, `indicator_scale`, and `ordered_dimension`, assist in interpreting indicator data. Variables like `whoreg6` and `wbincome2024` categorize countries by WHO region and World Bank income classification, respectively.
+
+The dataset’s diverse variables and structured format enable a wide range of analyses, from tracking global trends to exploring the impact of environmental, personal, and socioeconomic factors on life expectancy. Its compatibility with analytical tools like R ensures that the data can be readily processed, explored, and visualized. These attributes make the GHO dataset a robust resource for studying global health patterns and identifying determinants of life expectancy across diverse contexts.
+
 ## Missing value analysis
+
+```{r}
+library(readxl)
+library(naniar)
+
+data <- read_excel("/Users/maliwang/Desktop/Course/stat5702/rep_gho/data.xlsx")
+vis_miss(data, warn_large_data = FALSE)
+```
+
+The analysis of missing data in the dataset reveals several important patterns that guide its usability for further analysis. Notably, three columns `se`, `population`, and `flag` are entirely missing, providing no usable information. These columns are strong candidates for removal unless their absence can be explained or they are deemed relevant for specific indicators.
+
+Other columns, such as `estimate`, `ci_lb`, and `ci_ub`, exhibit partial missingness, with approximately 1% to 11% of their values missing. These columns are integral to quantitative analyses and will require careful handling, either through imputation techniques or exclusion of incomplete records, depending on their importance and the extent of missingness in the analysis context.
+
+Key columns, including `setting`, `date`, `indicator_abbr`, and `indicator_name`, are fully populated with 0% missing values, ensuring their reliability for supporting robust analyses. Furthermore, columns such as `iso3`, `wbincome2024`, and `whoreg6` have minimal missing values, with less than 2% of their entries incomplete. This level of missingness poses no significant challenges to the analysis and is unlikely to bias results.
+
+```{r}
+library(ggplot2)
+library(dplyr)
+library(stringr)
+
+missing_summary <- data |>
+  group_by(indicator_name) |>
+  summarise(MissingPercent = mean(is.na(estimate)), .groups = "drop") |>
+  filter(MissingPercent > 0) |>
+  arrange(desc(MissingPercent)) 
+
+# Create a bar plot
+ggplot(missing_summary, aes(x = reorder(indicator_name, MissingPercent), y = MissingPercent)) +
+  geom_bar(stat = "identity", fill = "skyblue") +
+  coord_flip() +  # Flip the coordinates for better readability
+  labs(
+    x = "Indicator Abbreviation",
+    y = "Missing Percentage",
+    title = "Missing Percentage by Indicator Name (Filtered)"
+  ) +
+  theme_minimal() +
+  theme(axis.text.y = element_text(size = 8))+
+  scale_y_continuous(labels = scales::percent_format())
+```
+
+The analysis above focused on how missing values in the `estimate` column are distributed across different indicators, as indicators with excessive missingness cannot be reliably used for analysis. The visualization of missing data highlights notable patterns across indicators with non-zero proportions of missingness in the estimate column. A thematic review reveals that indicators related to alcohol and tobacco use, as well as accessibility to assistive products, account for the majority of the missing data. Behavioral health indicators, such as smoking and e-cigarette use, often rely on specific surveys or self-reported data, which may not be systematically collected or consistently available across all regions. The significant absence of critical behavioral health indicators, particularly those pertaining to alcohol and tobacco use, poses a challenge to effective monitoring and intervention, limiting the ability to address associated health risks on a global scale.
