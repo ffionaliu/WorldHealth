@@ -6,7 +6,7 @@ execute:
   echo: true
 
 book:
-  title: "World Health"
+  title: "Exploring Determinants of Life Expectancy: The Interplay of Environmental, Behavioral, and Socioeconomic Factors Across 198 Countries"
   author:
     - Qingwen Liu (ql2549)
     - Mali Wang (mw3839)
