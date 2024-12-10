@@ -47,6 +47,7 @@ ggplot(missing_summary, aes(x = reorder(indicator_name, MissingPercent), y = Mis
   theme_minimal() +
   theme(axis.text.y = element_text(size = 8))+
   scale_y_continuous(labels = scales::percent_format())
+
 ```
 
 The analysis above focused on how missing values in the `estimate` column are distributed across different indicators, as indicators with excessive missingness cannot be reliably used for analysis. The visualization of missing data highlights notable patterns across indicators with non-zero proportions of missingness in the `estimate` column. A thematic review reveals that indicators related to alcohol and tobacco use, as well as accessibility to assistive products, account for the majority of the missing data. Behavioral health indicators, such as smoking and e-cigarette use, often rely on specific surveys or self-reported data, which may not be systematically collected or consistently available across all regions. The significant absence of critical behavioral health indicators, particularly those pertaining to alcohol and tobacco use, poses a challenge to effective monitoring and intervention, limiting the ability to address associated health risks on a global scale.
