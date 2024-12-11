@@ -1,14 +1,14 @@
 // add your JavaScript/D3 to this file
 // Global variables
-let processedData, svg, barSvg, x, y, color, allCountries = new Set();
+let processedData, svg, barSvg, x, y, color, selectedGender, allCountries = new Set();
 let tooltip;
 
 // Set dimensions and margins
 const margin = { top: 50, right: 150, bottom: 70, left: 70 };
-const barMargin = { top: 50, right: 50, bottom: 50, left: 150 };
+const barMargin = { top: 50, right: 50, bottom: 50, left: 50 };
 const width = 800 - margin.left - margin.right;
 const height = 500 - margin.top - margin.bottom;
-const barWidth = 800 - barMargin.left - barMargin.right;
+const barWidth = 500 - barMargin.left - barMargin.right;
 const barHeight = 500 - barMargin.top - barMargin.bottom;
 
 // Create SVG container for line chart
@@ -153,30 +153,38 @@ function updateBarChart() {
   bars.exit().remove();
 }
 
-// Add legend
-    function updateLegend() {
-      const legend = svg.selectAll(".legend")
-        .data(Array.from(allCountries), d => d);
+function updateLegend() {
+  // Select legend container group
+  const legend = svg.selectAll(".legend")
+    .data(Array.from(allCountries), d => d); // Bind only selected countries
 
-      const legendEnter = legend.enter()
-        .append("g")
-        .attr("class", "legend")
-        .attr("transform", (_, i) => `translate(${width + 20}, ${i * 20})`);
+  // Enter new legend items
+  const legendEnter = legend.enter()
+    .append("g")
+    .attr("class", "legend")
+    .attr("transform", (_, i) => `translate(${width + 20}, ${i * 20})`); // Align vertically
 
-      legendEnter.append("rect")
-        .attr("width", 10)
-        .attr("height", 10)
-        .attr("fill", d => color(d));
+  // Add colored rectangles for each legend entry
+  legendEnter.append("rect")
+    .attr("x", 0)
+    .attr("y", 0)
+    .attr("width", 12)
+    .attr("height", 12)
+    .attr("fill", d => color(d)); // Use the color scale
 
-      legendEnter.append("text")
-        .attr("x", 15)
-        .attr("y", 10)
-        .attr("text-anchor", "start")
-        .style("font-size", "12px")
-        .text(d => `${d} (${selectedGender})`);
+  // Add text labels for each legend entry
+  legendEnter.append("text")
+    .attr("x", 20) // Offset for the text
+    .attr("y", 10) // Align vertically with the rectangle
+    .style("font-size", "12px")
+    .text(d => `${d} (${selectedGender})`);
 
-      legend.exit().remove();
-    }
+  // Update existing legend items (e.g., reposition)
+  legend.attr("transform", (_, i) => `translate(${width + 20}, ${i * 20})`);
+
+  // Exit and remove old legend items
+  legend.exit().remove();
+}
 
 // Call `updateBarChart` after updating the line chart
 function updateChart() {
@@ -314,26 +322,36 @@ d3.csv("life_expectancy_data.csv").then(rawData => {
 
   // Add gender toggle buttons
   const genders = ["Male", "Female"];
-  d3.select("body")
-    .append("div")
-    .attr("class", "gender-buttons")
-    .selectAll("button")
-    .data(genders)
-    .enter()
-    .append("button")
-    .text(d => d)
-    .on("click", function (_, gender) {
-      selectedGender = gender;
-      updateChart();
-    });
+  const genderContainer = d3.select("body")
+  .append("div")
+  .attr("class", "button-container gender-buttons");
+  
+  genderContainer.append("h3").text("Select Gender:");
+  
+genderContainer.selectAll("button")
+  .data(genders)
+  .enter()
+  .append("button")
+  .text(d => d)
+  .on("click", function (_, gender) {
+    selectedGender = gender;
+
+    // Set active class for the clicked button
+    d3.selectAll(".gender-buttons button")
+      .classed("active", d => d === gender);
+
+    updateChart();
+  });
 
   // Add buttons for each country
   const countries = Array.from(new Set(processedData.map(d => d.country)));
-  const buttonContainer = d3.select("body")
+  const countryContainer = d3.select("body")
     .append("div")
-    .attr("class", "country-buttons");
+    .attr("class", "button-container country-buttons");
 
-  buttonContainer.selectAll("button")
+countryContainer.append("h3").text("Select Countries:");
+
+countryContainer.selectAll("button")
     .data(countries)
     .enter()
     .append("button")
@@ -344,6 +362,7 @@ d3.csv("life_expectancy_data.csv").then(rawData => {
       } else {
         allCountries.delete(country);
       }
+      d3.select(this).classed("active", allCountries.has(country));
       updateChart();
     });
 
