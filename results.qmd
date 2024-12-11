@@ -8,13 +8,258 @@ library(cowplot)
 library(tidyr)
 library(GGally)
 
-data <- read_excel("/Users/maliwang/Desktop/Course/stat5702/rep_gho/data.xlsx")
+data <- read_excel("/Users/qingwenliu/Desktop/Edav/data.xlsx")
 head(data)
 ```
 
-## environmental factors
+## Impact of Air Pollution and Water Pollution on Average Life Expectancy
 
-## personal behaviors
+```{r}
+Avg_life_expectancy <- data |>
+  filter(indicator_name == "Life expectancy at birth (years)") |>
+  group_by(setting) |>
+  summarise(Average_life_expectancy = mean(estimate, na.rm = TRUE))
+
+Ambient_air_pollution <- data |>
+  filter(indicator_name == "Ambient air pollution attributable death rate (per 100 000 population)") |>
+  group_by(setting) |>
+  summarise(ambient_life_expectancy = mean(estimate, na.rm = TRUE))
+Household_air_pollution <- data |>
+  filter(indicator_name == "Household air pollution attributable death rate (per 100 000 population)") |>
+  group_by(setting) |>
+  summarise(household_life_expectancy = mean(estimate, na.rm = TRUE))
+
+Environment_data_1 <- merge(Avg_life_expectancy, Ambient_air_pollution, by = "setting")
+Environment_data <-merge(Household_air_pollution,Environment_data_1, by = "setting")
+```
+
+```{r}
+Ambient_death_rate <- data |>
+  filter(indicator_name == "Ambient air pollution attributable death rate (per 100 000 population)") |>
+  group_by(setting) |>
+  summarise(ambient_rate = mean(estimate, na.rm = TRUE))
+Household_death_rate <- data |>
+  filter(indicator_name == "Household air pollution attributable death rate (per 100 000 population)") |>
+  group_by(setting) |>
+  summarise(household_rate = mean(estimate, na.rm = TRUE))
+merged_1 <- merge(Ambient_death_rate, Household_death_rate, by = "setting")
+Death_rate <- merge(Avg_life_expectancy, merged_1,by ="setting") |>
+  pivot_longer(cols = c(household_rate, ambient_rate), names_to = "types", values_to = "percent")
+ggplot(Death_rate,aes(x = percent, y = Average_life_expectancy)) +
+  geom_smooth(method = "lm") +
+  facet_wrap(~types) +
+  geom_point(size = 2) +  
+  labs(title = "Relationship between Different Types of Air Pollution Percent and Life Expectancy ", x = "air pollution percent", y = "Life expectancy") +
+  scale_fill_viridis_d() +
+  theme_minimal()
+
+```
+The scatter plots reveal how different types of air pollution impact life expectancy. On the right, there is a clear negative relationship between household air pollution rate and life expectancy. As the household air pollution attributable rate increases, life expectancy decreases, highlighting the detrimental effect of household air pollution. Conversely, the left scatter plot shows a slight increase in life expectancy with ambient pollution attributable death rate. While this might seem counterintuitive, it could be explained by confounding factors such as variations in personal behaviors, income levels, or healthcare systems across regions.
+
+```{r}
+open_defecation <- data |>
+  filter(indicator_name =="Population practicing open defecation (%)") |>
+  group_by(setting) |>
+  summarise(open_defecation= mean(estimate, na.rm = TRUE))
+
+basic_drinking_water <- data |>
+  filter(indicator_name == "Population using at least basic drinking-water services (%)") |>
+  group_by(setting) |>
+  summarise(basic_drinking = mean(estimate, na.rm = TRUE))
+
+basic_sanitation <- data |>
+  filter(indicator_name == "Population using at least basic sanitation services (%)") |>
+  group_by(setting) |>
+  summarise(basic_sanitation = mean(estimate, na.rm = TRUE))
+
+managed_drinking_water <-data |>
+  filter(indicator_name == "Population using safely managed drinking-water services (%)") |>
+  group_by(setting) |>
+  summarise(managed_drinking = mean(estimate, na.rm = TRUE))
+
+managed_sanitation_water <-data |>
+  filter(indicator_name == "Population using safely managed sanitation services (%)") |>
+  group_by(setting) |>
+  summarise(managed_sanitation = mean(estimate, na.rm = TRUE))
+
+basic_handwashing_facilitation <- data|>
+  filter(indicator_name =="Population using safely managed sanitation services (%)") |>
+  group_by(setting) |>
+  summarise(handwashing = mean(estimate, na.rm = TRUE))
+
+#Merge datasets
+Environment_data_1 <- merge(basic_drinking_water, basic_sanitation, by = "setting")
+Environment_data_2 <-merge(managed_drinking_water,Environment_data_1, by = "setting")
+Environment_data_3 <-merge(open_defecation,Environment_data_2, by = "setting")
+Environment_data_4 <- merge(basic_handwashing_facilitation,Environment_data_3, by = "setting")
+Environment_data_5 <- merge(managed_sanitation_water, Environment_data_4,by = "setting")
+Water_pollution <- merge(Avg_life_expectancy, Environment_data_5,by = "setting")
+
+# Identify top 5 and bottom 5 countries by average life expectancy
+top_bottom_10 <- Water_pollution |>
+  arrange(desc(Average_life_expectancy)) |>
+  mutate(rank = row_number()) %>%
+  mutate(category = case_when(
+    rank <= 9 ~ "Top 9",
+    rank > n() - 9 ~ "Bottom 9",
+    TRUE ~ NA_character_
+  )) %>%
+  filter(!is.na(category))%>%  # Keep only Top 5 and Bottom 5
+  mutate(category = factor(category, levels = c("Top 9", "Bottom 9")))
+top_10 <- top_bottom_10 |>
+  filter(category == "Top 9")
+bottom_10 <- top_bottom_10 |>
+  filter(category == "Bottom 9")
+top_10 |>
+  pivot_longer(cols = c(managed_sanitation,handwashing,open_defecation,managed_drinking,basic_drinking,basic_sanitation), names_to = "Types", values_to = "Percent") |>
+  ggplot(aes(x = Types, y = Percent, fill = Types)) +
+  geom_bar(stat = "identity") +
+  facet_wrap(~ setting+rank) +
+  scale_fill_viridis_d()+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  labs(title = "Countries with Top 9 Life Expectancy")
+bottom_10 |>
+  pivot_longer(cols = c(managed_sanitation,handwashing,open_defecation,managed_drinking,basic_drinking,basic_sanitation), names_to = "Types", values_to = "Percent") |>
+  ggplot(aes(x = Types, y = Percent, fill = Types)) +
+  geom_bar(stat = "identity") +
+  facet_wrap(~ setting+rank) +
+  scale_fill_viridis_d() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  labs(title = "Countries with Bottom 9 Life Expectancy")
+```
+Building on the insights about environmental factors, the bar plots compare water-related services between countries with the highest and lowest average life expectancy. The x-axis includes categories like basic and managed drinking-water and sanitation services, handwashing facilities, and open defecation rates. In countries with the top 9 life expectancy, over 75% of the population uses basic and managed water and sanitation services, while handwashing facilities are also widely available. In stark contrast, the bottom 9 countries show much lower usage rates for these services, particularly managed sanitation and drinking-water services. Open defecation, which is rare in high-life-expectancy countries, rises to around 20% in low-life-expectancy countries. This stark disparity underscores how access to clean water and sanitation directly influences health outcomes and, consequently, life expectancy.
+
+
+## Influence of Personal Behavior of Smoking and Drinking on Life Expectancy
+```{r}
+Daily_intake <- data |>
+  filter(indicator_name == "Alcohol, average daily intake among drinkers (grams)")
+life_expectancy_date <- data |>
+  filter(indicator_name == "Life expectancy at birth (years)") |>
+  group_by(date) |>
+  summarise(Average_life_expectancy = mean(estimate, na.rm = TRUE))
+Heavy_drinking <- Daily_intake |>
+  group_by(date) |>
+  summarise(alcohol_intake = mean(mean(estimate, na.rm = TRUE)))
+life_alcohol <- merge(life_expectancy_date,Heavy_drinking,by ="date")
+
+ggplot(life_alcohol) +
+  geom_line(aes(x = date, y = Average_life_expectancy, color = "Life Expectancy"), size = 1) +
+  geom_line(aes(x = date, y = alcohol_intake, color = "Alcohol Consumption"), size = 1) +
+  scale_fill_viridis_d()+
+  labs(title = "Average Life Expectancy and Alcohol Intake", x = "Year", y = "Value") +
+  theme_minimal()
+```
+Turning to lifestyle factors, the multiple time series graph explores alcohol intake and average life expectancy from 2000 to 2020. Alcohol consumption shows a slight decline, especially after 2010, while life expectancy exhibits a steady upward trend, suggesting overall health improvements. The trends hint at a complex relationship: while alcohol intake slightly decreased, life expectancy’s growth slowed around the same period. This suggests that other factors, beyond alcohol consumption alone, may also shape life expectancy trends. 
+
+
+```{r}
+Alcohol_country<- Daily_intake |>
+  group_by(setting) |>
+  summarise(alcohol_intake = mean(mean(estimate, na.rm = TRUE)))
+Alcohol <- merge(Alcohol_country,Avg_life_expectancy, by="setting")
+ggplot(Alcohol, aes(x = alcohol_intake, y = Average_life_expectancy)) +
+  geom_point(alpha = 0.6) +  # Scatter points
+  geom_smooth(method = "loess", se = TRUE) + 
+  scale_fill_viridis_d()+# Linear trend line
+  labs(title = "Average Life Expectancy and Alcohol Consumption By Countries",
+       x = "Alcohol Consumption",
+       y = "Life Expectancy") +
+  theme_minimal()
+```
+Further examining the connection between alcohol and life expectancy, the dot plot highlights a nonlinear relationship across 182 countries. Life expectancy increases with moderate alcohol consumption, peaking around 20 grams daily. Beyond this level, it plateaus and then declines as alcohol consumption rises. Notably, the variability in life expectancy at both very low and very high levels of alcohol consumption suggests that additional factors, such as socioeconomic conditions or health policies, may contribute to the observed trends. Moderate consumption appears to associate with slightly higher life expectancy, while excessive drinking clearly correlates with reduced longevity.
+
+```{r}
+cigarette_date <- data |>
+  filter(indicator_name == "Estimate of current cigarette smoking prevalence (%)") |>
+  group_by(date) |>
+  summarise(cigarette_prevalence = mean(mean(estimate, na.rm = TRUE)))
+tobacco_use_date <- data |>
+  filter(indicator_name == "Estimate of current tobacco use prevalence (%)") |>
+  group_by(date) |>
+  summarise(tobacco_use_prevalence = mean(mean(estimate, na.rm = TRUE)))
+Smoking_date <- merge(tobacco_use_date,cigarette_date,by ="date")
+life_smoke_date <- merge(Smoking_date,life_expectancy_date,by="date") 
+
+smoke_date <- life_smoke_date |>
+  pivot_longer(cols = c(tobacco_use_prevalence, cigarette_prevalence),names_to = "types",values_to = "value")
+
+ggplot(smoke_date) +
+  geom_line(aes(x = date, y = Average_life_expectancy, color = "Life Expectancy"), size = 1) +
+  geom_line(aes(x = date, y = value, color = "Alcohol Consumption"), size = 1) +
+  scale_fill_viridis_d()+
+  labs(title = "Average Life Expectancy and Smoke Prevalence", x = "Year", y = "Value") +
+  theme_minimal()
+```
+Shifting focus to smoking prevalence, another multiple time series graph highlights trends in life expectancy and smoking rates from 2000 to 2020. Life expectancy consistently increases, albeit with a slight plateau around 2019-2020, whereas smoking prevalence steadily declines. This inverse relationship suggests that decreasing smoking rates, likely driven by public health campaigns and regulatory measures, may contribute to longer lifespans.
+
+```{r}
+cigarette_country <- data |>
+  filter(indicator_name == "Estimate of current cigarette smoking prevalence (%)") |>
+  group_by(setting) |>
+  summarise(cigarette_prevalence = mean(mean(estimate, na.rm = TRUE)))
+tobacco_use_country <- data |>
+  filter(indicator_name == "Estimate of current tobacco use prevalence (%)") |>
+  group_by(setting) |>
+  summarise(tobacco_use_prevalence = mean(mean(estimate, na.rm = TRUE)))
+
+Smoking_country <- merge(tobacco_use_country,cigarette_country,by ="setting")
+life_smoke_country <- merge(Smoking_country,Avg_life_expectancy,by="setting") 
+smoke_country <- life_smoke_country |>
+  pivot_longer(cols = c(tobacco_use_prevalence, cigarette_prevalence),names_to = "types",values_to = "value")
+ggplot(smoke_country, aes(x = value, y = Average_life_expectancy)) +
+  geom_point(alpha = 0.6) +  # Scatter points
+  geom_smooth(method = "loess", se = TRUE) + 
+  scale_fill_viridis_d()+# Linear trend line
+  labs(title = "Life Expectancy and Smoking Prevalence By Countries",
+       x = "Smoking Prevalence",
+       y = "Life Expectancy") +
+  theme_minimal()
+
+```
+The dot plot examining smoking prevalence and life expectancy reveals a nuanced pattern. Initially, life expectancy rises with smoking prevalence up to around 20-25%, potentially reflecting better healthcare and socioeconomic conditions in moderately smoking populations. However, beyond this point, higher smoking prevalence leads to a clear decline in life expectancy, emphasizing the negative health impacts of smoking. This trend illustrates how, while moderate smoking prevalence might mask its adverse effects in certain contexts, high smoking rates unequivocally shorten lifespans.
+
+## PCA
+```{r}
+merged_data_1 <- merge(Alcohol_country,Smoking_country,by = "setting")
+merged_data_2 <- merge(merged_data_1,Ambient_death_rate,by = "setting" )
+merged_data_3 <-merge(merged_data_2,Household_death_rate,by = "setting")
+merged_data <- merge(merged_data_3,Water_pollution, by ="setting")
+numeric_data <- merged_data[, sapply(merged_data, is.numeric)]
+scaled_data <- scale(numeric_data)
+pca_result <- prcomp(scaled_data, center = TRUE, scale. = TRUE)
+pca_var <- as.data.frame(pca_result$rotation)  # Variable loadings
+pca_var$varname <- rownames(pca_var)          # Add variable names
+
+pca_ind <- as.data.frame(pca_result$x)        # Individual scores
+pca_ind$obsname <- rownames(pca_ind)          # Add observation names
+
+# Scale variable loadings for better visibility
+scaling_factor <- max(abs(pca_ind$PC1), abs(pca_ind$PC2)) / max(abs(pca_var$PC1), abs(pca_var$PC2))
+pca_var$PC1 <- pca_var$PC1 * scaling_factor
+pca_var$PC2 <- pca_var$PC2 * scaling_factor
+
+# Add colors to variables based on categories (assign colors manually if needed)
+pca_var$color <- factor(pca_var$varname)  # Create a factor to assign unique colors
+
+# Calculate explained variance percentages
+explained_variance <- summary(pca_result)$importance[2, ] * 100
+xlab <- paste0("PC1 (", round(explained_variance[1], 1), "% explained variance)")
+ylab <- paste0("PC2 (", round(explained_variance[2], 1), "% explained variance)")
+
+# Create the PCA biplot with differentiated colors and side text labels
+ggplot() +
+  # Add individuals (scatter points)
+  geom_point(data = pca_ind, aes(x = PC1, y = PC2), color = "black") +
+  geom_segment(data = pca_var, 
+               aes(x = 0, y = 0, xend = PC1, yend = PC2, color = color), 
+               arrow = arrow(length = unit(0.2, "cm"))) +
+  labs(title = "PCA Biplot", x = xlab, y = ylab) +
+  theme_minimal() +
+  theme(axis.title = element_text(size = 12), plot.title = element_text(hjust = 0.5, size =14)) +
+  scale_fill_viridis_d()
+```
+In the PCA plot, PC1 (52.1% explained variance) accounts for the majority of the variance in the data. Variables highly correlated with PC1 have the strongest influence on the overall variation. PC2 (17% explained variance) accounts for a smaller portion of the variation but captures the second most significant pattern in the data. Variables such as ambient rate, tobacco use prevalence, and cigarette prevalence are positively correlated and point in the same direction, indicating that they are strongly related. Similarly, basic drinking, basic sanitation services, managed drinking, and handwashing facilities are positively correlated and also cluster together, suggesting a shared influence. Key contributors to PC1 include household rate, ambient rate, and tobacco use prevalence, which have strong impacts on overall variation. For PC2, variables like cigarette prevalence and managed sanitation contribute positively, representing the second major pattern in the data. When it comes to life expectancy, variables such as managed sanitation services, managed drinking services, and basic sanitation services have positive influences, indicating that improvements in water and sanitation infrastructure are associated with substantial gains in life expectancy. Conversely, variables like open defecation, alcohol intake, and ambient rate have negative influences, suggesting these factors are detrimental to health and longevity. The clustering of managed sanitation, managed drinking, and basic sanitation near Average Life Expectancy further emphasizes the critical role of health infrastructure in improving life expectancy outcomes.
 
 ## Life Expectancy Trends by World Bank Income Groups
 
@@ -55,7 +300,7 @@ ggplot(
   )
 ```
 
-The boxplot provides a detailed comparison of life expectancy at birth in 2024 across four World Bank income groups: High income, Upper middle income, Lower middle income, and Low income. The High income group demonstrates the highest median life expectancy, slightly above 80 years, with a relatively narrow interquartile range (IQR), indicating low variability among countries in this category. A few outliers below 70 years suggest that some high-income countries experience lower-than-expected life expectancy. The Upper middle income group shows a median life expectancy of approximately 75 years, with a moderately wider IQR compared to the High income group, highlighting greater variability. The Lower middle income group exhibits a further decline in median life expectancy to around 70 years, accompanied by a wider IQR, suggesting even greater disparities within this category. The Low income group has the lowest median life expectancy, just above 60 years, with a wide range of variability and several outliers extending toward higher values, reflecting countries that outperform the average for this income group. This visualization underscores the strong positive correlation between national income levels and life expectancy while also highlighting the disparities and exceptions within each income category.
+The disparity in life expectancy across income groups is further highlighted in the boxplot, which compares life expectancy at birth in 2024 across four World Bank income classifications: High income, Upper middle income, Lower middle income, and Low income. The High income group demonstrates the highest median life expectancy, slightly above 80 years, with a relatively narrow interquartile range (IQR), indicating low variability among countries in this category. A few outliers below 70 years suggest that some high-income countries experience lower-than-expected life expectancy. The Upper middle income group shows a median life expectancy of approximately 75 years, with a moderately wider IQR compared to the High income group, highlighting greater variability. The Lower middle income group exhibits a further decline in median life expectancy to around 70 years, accompanied by a wider IQR, suggesting even greater disparities within this category. The Low income group has the lowest median life expectancy, just above 60 years, with a wide range of variability and several outliers extending toward higher values, reflecting countries that outperform the average for this income group. This visualization underscores the strong positive correlation between national income levels and life expectancy while also highlighting the disparities and exceptions within each income category.
 
 ```{r}
 # Identify Top 20 and Bottom 20 countries by average life expectancy
@@ -89,7 +334,7 @@ ggplot(top_bottom_countries, aes(x = reorder(setting, -average_life_expectancy),
   )
 ```
 
-In the Top 20 countries, all are classified as High income, demonstrating a direct correlation between economic prosperity and health outcomes. High life expectancy in these countries, consistently above 80 years, reflects advanced healthcare systems, widespread access to preventive care, high educational attainment, and robust public health infrastructure. These nations also benefit from lower rates of preventable diseases, effective management of chronic conditions, and social safety nets that support healthy aging. However, the clustering of high-income countries in this category raises questions about how lower-income nations can bridge this gap, particularly given the evident association between wealth and life expectancy.
+The Top 20 countries, all are classified as High income, demonstrate a direct correlation between economic prosperity and health outcomes. High life expectancy in these countries, consistently above 80 years, reflects advanced healthcare systems, widespread access to preventive care, high educational attainment, and robust public health infrastructure. These nations also benefit from lower rates of preventable diseases, effective management of chronic conditions, and social safety nets that support healthy aging. However, the clustering of high-income countries in this category raises questions about how lower-income nations can bridge this gap, particularly given the evident association between wealth and life expectancy.
 
 The Bottom 20 countries, on the other hand, expose stark disparities. This group includes nations from Low income and Lower middle income categories, with a single representation from the Upper middle income group. Average life expectancy in this group, ranging from 50 to 60 years, is significantly lower than in the Top 20, reflecting the profound influence of socioeconomic factors on health. Challenges such as limited access to healthcare, high rates of infectious diseases, poor sanitation, malnutrition, and insufficient public health investment are likely contributors to these lower outcomes. For example, countries like Lesotho face a unique combination of socioeconomic and health crises, including high rates of HIV/AIDS, which dramatically reduce life expectancy.
 
@@ -99,8 +344,8 @@ The solitary representation of an Upper middle income country in the Bottom 20 w
 
 ```{r}
 # Read datasets with appropriate skipping of rows for headers
-medical_doctors <- read_excel("/Users/maliwang/Desktop/Course/stat5702/rep_gho/medical_doctors_per10000.xlsx", skip = 2)
-nursing_midwifery <- read_excel("/Users/maliwang/Desktop/Course/stat5702/rep_gho/nursing_midwifery_per10000.xlsx", skip = 2)
+medical_doctors <- read_excel("/Users/qingwenliu/Desktop/Edav/medical_doctors_per10000.xlsx", skip = 2)
+nursing_midwifery <- read_excel("/Users/qingwenliu/Desktop/Edav/nursing_midwifery_per10000.xlsx", skip = 2)
 
 # Calculate average medical doctors per 10,000 population by country
 country_avg_medical_doctors <- medical_doctors %>%
@@ -221,7 +466,7 @@ ggplot(travel_distance_data, aes(x = setting, y = setting_average, fill = indica
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ```
 
-## unexpected factors such as suicide and traffic accidents
+## Unexpected factors such as suicide and traffic accidents
 
 ```{r}
 # Process suicide data
@@ -303,10 +548,9 @@ ggplot(merged_data4[!is.na(merged_data4$wbincome2024), ],
   )
 ```
 
-The two graphs highlight the gender disparity in suicide and homicide rates across different income groups, revealing significant patterns influenced by socioeconomic factors. In the first graph, male suicide rates consistently exceed female rates across all income levels, with the gap being particularly pronounced in high-income and upper-middle-income countries. This suggests that while higher-income countries may have better access to mental health resources, societal pressures and mental health challenges disproportionately affect men. In lower-income countries, the disparity narrows slightly, though male rates still dominate, reflecting underlying cultural, societal, and economic factors. The second graph demonstrates a similar pattern for homicide rates, with male rates significantly exceeding female rates in all income groups. This disparity is most severe in upper-middle-income countries, where male homicide rates frequently surpass 60 to 90 per 100,000, likely due to higher levels of systemic violence, instability, and limited law enforcement. However, despite these patterns, the overall mortality due to suicide and homicide is relatively small compared to other causes of death and thus contributes minimally to the observed differences in life expectancy across income groups. This suggests that while suicide and homicide reflect important societal challenges, their direct impact on life expectancy is limited relative to broader health and systemic factors.
+Societal challenges are explored in the final graphs, which examine gender disparity in suicide and homicide rates across different income groups, revealing significant patterns influenced by socioeconomic factors. In the first graph, male suicide rates consistently exceed female rates across all income levels, with the gap being particularly pronounced in high-income and upper-middle-income countries. This suggests that while higher-income countries may have better access to mental health resources, societal pressures and mental health challenges disproportionately affect men. In lower-income countries, the disparity narrows slightly, though male rates still dominate, reflecting underlying cultural, societal, and economic factors. The second graph demonstrates a similar pattern for homicide rates, with male rates significantly exceeding female rates in all income groups. This disparity is most severe in upper-middle-income countries, where male homicide rates frequently surpass 60 to 90 per 100,000, likely due to higher levels of systemic violence, instability, and limited law enforcement. However, despite these patterns, the overall mortality due to suicide and homicide is relatively small compared to other causes of death and thus contributes minimally to the observed differences in life expectancy across income groups. This suggests that while suicide and homicide reflect important societal challenges, their direct impact on life expectancy is limited relative to broader health and systemic factors.
 
 ## Relationship between Obesity, Income, and Life Expectancy Across Nations
-
 ```{r}
 # Process health indicator datasets
 insufficient_activity_data <- data %>%
@@ -333,6 +577,7 @@ blood_glucose_data <- data %>%
   filter(indicator_name == "Raised fasting blood glucose (>=7.0 mmol/L) (18+ years) (age-standardized) (%)") %>%
   group_by(setting) %>%
   summarize(setting_average = mean(setting_average, na.rm = TRUE), .groups = "drop")
+
 
 # Combine datasets into a single table
 parallel_data <- child_obesity_data %>% 

@@ -14,7 +14,7 @@ The dataset’s diverse variables and structured format enable a wide range of a
 library(readxl)
 library(naniar)
 
-data <- read_excel("/Users/maliwang/Desktop/Course/stat5702/rep_gho/data.xlsx")
+data <- read_excel("/Users/qingwenliu/Desktop/Edav/data.xlsx")
 vis_miss(data, warn_large_data = FALSE)
 ```
 
