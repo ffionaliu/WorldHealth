@@ -26,13 +26,18 @@ life_expectancy_data <- data |>
     wbincome2024, 
     levels = c("High income", "Upper middle income", "Lower middle income", "Low income")
   ))
+#write.csv(life_expectancy_data, "life_expectancy_data.csv", row.names = FALSE)
+# Calculate average life expectancy for all countries by setting and income group
+country_avg_life_expectancy <- life_expectancy_data %>%
+  group_by(setting, wbincome2024) %>%
+  summarize(average_life_expectancy = mean(estimate, na.rm = TRUE), .groups = "drop")
 ```
 
 ```{r}
 # Plot the boxplot
 ggplot(
-  life_expectancy_data[!is.na(life_expectancy_data$wbincome2024), ], 
-  aes(x = wbincome2024, y = estimate, fill = wbincome2024)
+  country_avg_life_expectancy[!is.na(country_avg_life_expectancy$wbincome2024), ], 
+  aes(x = wbincome2024, y = average_life_expectancy, fill = wbincome2024)
 ) +
   geom_boxplot(outlier.size = 1, alpha = 0.8) + # Adjust outlier size and box transparency
   theme_minimal(base_size = 12) + # Slightly larger base font size
@@ -53,11 +58,6 @@ ggplot(
 The boxplot provides a detailed comparison of life expectancy at birth in 2024 across four World Bank income groups: High income, Upper middle income, Lower middle income, and Low income. The High income group demonstrates the highest median life expectancy, slightly above 80 years, with a relatively narrow interquartile range (IQR), indicating low variability among countries in this category. A few outliers below 70 years suggest that some high-income countries experience lower-than-expected life expectancy. The Upper middle income group shows a median life expectancy of approximately 75 years, with a moderately wider IQR compared to the High income group, highlighting greater variability. The Lower middle income group exhibits a further decline in median life expectancy to around 70 years, accompanied by a wider IQR, suggesting even greater disparities within this category. The Low income group has the lowest median life expectancy, just above 60 years, with a wide range of variability and several outliers extending toward higher values, reflecting countries that outperform the average for this income group. This visualization underscores the strong positive correlation between national income levels and life expectancy while also highlighting the disparities and exceptions within each income category.
 
 ```{r}
-# Calculate average life expectancy for all countries by setting and income group
-country_avg_life_expectancy <- life_expectancy_data %>%
-  group_by(setting, wbincome2024) %>%
-  summarize(average_life_expectancy = mean(estimate, na.rm = TRUE), .groups = "drop")
-
 # Identify Top 20 and Bottom 20 countries by average life expectancy
 top_bottom_countries <- country_avg_life_expectancy %>%
   arrange(desc(average_life_expectancy)) %>%
