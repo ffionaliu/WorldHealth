@@ -5,11 +5,11 @@ let tooltip;
 
 // Set dimensions and margins
 const margin = { top: 50, right: 150, bottom: 70, left: 70 };
-const barMargin = { top: 50, right: 50, bottom: 50, left: 50 };
-const width = 800 - margin.left - margin.right;
+const barMargin = { top: 50, right: 50, bottom: 150, left: 50 };
+const width = 600 - margin.left - margin.right;
 const height = 500 - margin.top - margin.bottom;
 const barWidth = 500 - barMargin.left - barMargin.right;
-const barHeight = 500 - barMargin.top - barMargin.bottom;
+const barHeight = 600 - barMargin.top - barMargin.bottom;
 
 // Create SVG container for line chart
 svg = d3.select("#plot")
@@ -177,6 +177,10 @@ function updateLegend() {
     .attr("x", 20) // Offset for the text
     .attr("y", 10) // Align vertically with the rectangle
     .style("font-size", "12px")
+    .text(d => `${d} (${selectedGender})`);
+    
+  // Update existing legend items
+  legend.select("text")
     .text(d => `${d} (${selectedGender})`);
 
   // Update existing legend items (e.g., reposition)

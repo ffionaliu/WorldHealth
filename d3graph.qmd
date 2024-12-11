@@ -33,6 +33,7 @@
     
     .button-container {
     margin-bottom: 20px;
+    margin-left: 350px;
   }
 
   .button-container h3 {
