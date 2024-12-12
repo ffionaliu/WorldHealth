@@ -45,6 +45,7 @@ svg.append("text")
   .attr("x", width / 2)
   .attr("y", height + margin.bottom - 30)
   .text("Year");
+  
 
 // Add Y-axis label for line chart
 svg.append("text")
@@ -62,6 +63,8 @@ svg.append("text")
   .style("font-size", "16px")
   .style("font-weight", "bold")
   .text("Life Expectancy Over Time by Country and Gender");
+
+  
   
 // Function to update the bar chart
 function updateBarChart() {
@@ -112,6 +115,16 @@ function updateBarChart() {
   barSvg.append("g")
     .attr("class", "y-axis")
     .call(d3.axisLeft(yBar));
+    
+  // Add title for bar chart
+  barSvg.append("text")
+  .attr("class", "chart-title")
+  .attr("text-anchor", "middle")
+  .attr("x", barWidth/2)
+  .attr("y", -20)
+  .style("font-size", "16px")
+  .style("font-weight", "bold")
+  .text("Average Life Expectancy by Country and Gender (2000-2021)");
 
   // Bind data to bars
   const bars = barSvg.selectAll(".bar")
@@ -330,7 +343,7 @@ d3.csv("life_expectancy_data.csv").then(rawData => {
   .append("div")
   .attr("class", "button-container gender-buttons");
   
-  genderContainer.append("h3").text("Select Gender:");
+  genderContainer.append("h3").text("STEP 1: Select Gender:");
   
 genderContainer.selectAll("button")
   .data(genders)
@@ -353,7 +366,7 @@ genderContainer.selectAll("button")
     .append("div")
     .attr("class", "button-container country-buttons");
 
-countryContainer.append("h3").text("Select Countries:");
+countryContainer.append("h3").text("STEP 2: Select Countries:");
 
 countryContainer.selectAll("button")
     .data(countries)
