@@ -9,7 +9,7 @@ library(tidyr)
 library(GGally)
 library(ggrepel)
 library(viridis)
-data <- read_excel("/Users/maliwang/Desktop/Course/stat5702/rep_gho/data.xlsx")
+data <- read_excel("/Users/qingwenliu/Desktop/Edav/data.xlsx")
 ```
 
 ## Impact of Air Pollution and Water Pollution on Average Life Expectancy
@@ -144,7 +144,7 @@ bottom_10 |>
         plot.title = element_text(face = "bold", hjust = 0.5))
 ```
 
-The bar plots vividly illustrate disparities in water and sanitation services between countries with the highest and lowest average life expectancies. The x-axis represents various types of services, including basic and managed drinking water and sanitation, handwashing facilities, and open defecation rates. In the top 9 countries with the highest life expectancy, the population overwhelmingly relies on basic and managed services, with over 75% accessibility in most categories. Handwashing facilities are similarly widespread. However, in the bottom 9 countries, usage rates for managed services plummet, particularly for sanitation and drinking water. Open defecation, almost non-existent in high-life-expectancy nations, surges to around 20% in low-life-expectancy regions. These stark contrasts highlight the essential role of water, sanitation, and hygiene (WASH) services in promoting public health and improving life expectancy, underscoring the critical need for infrastructure investments in underserved areas.
+The bar plots vividly illustrate disparities in water and sanitation services between countries with the highest and lowest average life expectancy. The x-axis represents various types of services, including basic and managed drinking water and sanitation, handwashing facilities, and open defecation rates. In the top 9 countries with the highest life expectancy, the population overwhelmingly relies on basic and managed services, with over 75% accessibility in most categories. Handwashing facilities are similarly widespread. However, in the bottom 9 countries, usage rates for managed services plummet, particularly for sanitation and drinking water. Open defecation, almost non-existent in high-life-expectancy nations, surges to around 20% in low-life-expectancy regions. These stark contrasts highlight the essential role of water, sanitation, and hygiene (WASH) services in promoting public health and improving life expectancy, underscoring the critical need for infrastructure investments in underserved areas.
 
 ## Influence of Personal Behavior of Smoking and Drinking on Life Expectancy
 
@@ -196,7 +196,7 @@ ggplot(Alcohol, aes(x = alcohol_intake, y = Average_life_expectancy)) +
   )
 ```
 
-Further examining the connection between alcohol and life expectancy, the dot plot highlights a nonlinear relationship across 182 countries. Life expectancy increases with moderate alcohol consumption, peaking around 20 grams daily. Beyond this level, it plateaus and then declines as alcohol consumption rises. Notably, the variability in life expectancy at both very low and very high levels of alcohol consumption suggests that additional factors, such as socioeconomic conditions or health policies, may contribute to the observed trends. Moderate consumption appears to associate with slightly higher life expectancy, while excessive drinking clearly correlates with reduced longevity.
+Further examining the connection between alcohol and life expectancy, the dot plot highlights a nonlinear relationship across 182 countries. Life expectancy increases with moderate alcohol consumption, peaking around 20 grams daily. Beyond this level, it plateaus and then declines as alcohol consumption rises. Notably, the variability in life expectancy at both very low and very high levels of alcohol consumption suggests that additional factors, such as socioeconomic conditions or health policies, may contribute to the observed trends. Moderate consumption appears to associate with slightly higher life expectancy, while excessive drinking clearly correlates with reduced longevity. The observed increase in life expectancy among individuals consuming alcohol below 20% may be partially attributed to economic and income-related factors. Compared to non-drinkers, one possibility is that moderate drinkers may have greater financial means, allowing them to afford better healthcare and maintain a healthier lifestyle overall. From a medical perspective, moderate alcohol consumption, particularly red wine, has been linked to a reduced risk of cardiovascular disease. This aligns with the trend observed in the data, suggesting that moderate drinking, in combination with other socio-economic advantages, may contribute positively to longevity.
 
 ```{r}
 cigarette_date <- data |>
@@ -258,7 +258,7 @@ ggplot(smoke_country, aes(x = value, y = Average_life_expectancy)) +
   )
 ```
 
-The dot plot examining smoking prevalence and life expectancy reveals a nuanced pattern. Initially, life expectancy rises with smoking prevalence up to around 20-25%, potentially reflecting better healthcare and socioeconomic conditions in moderately smoking populations. However, beyond this point, higher smoking prevalence leads to a clear decline in life expectancy, emphasizing the negative health impacts of smoking. This trend illustrates how, while moderate smoking prevalence might mask its adverse effects in certain contexts, high smoking rates unequivocally shorten lifespans.
+The dot plot examining smoking prevalence and life expectancy reveals a nuanced pattern. Initially, life expectancy rises with smoking prevalence up to around 20-25%, potentially reflecting better healthcare and socioeconomic conditions in moderately smoking populations. However, beyond this point, higher smoking prevalence leads to a clear decline in life expectancy, emphasizing the negative health impacts of smoking. This trend illustrates how, while moderate smoking prevalence might mask its adverse effects in certain contexts, high smoking rates unequivocally shorten lifespans. Similarly, the observed increase in life expectancy among individuals who are smoking below 25% may be partially attributed to economic and income-related factors. Compared to non-smokers, one possibility is that moderate smokers may have greater financial means, allowing them to afford better healthcare and maintain a healthier lifestyle overall. 
 
 ## Life Expectancy Trends by World Bank Income Groups
 
@@ -344,8 +344,8 @@ The solitary representation of an Upper middle income country in the Bottom 20 w
 
 ```{r}
 # Read datasets with appropriate skipping of rows for headers
-medical_doctors <- read_excel("/Users/maliwang/Desktop/Course/stat5702/rep_gho/medical_doctors_per10000.xlsx", skip = 2)
-nursing_midwifery <- read_excel("/Users/maliwang/Desktop/Course/stat5702/rep_gho/nursing_midwifery_per10000.xlsx", skip = 2)
+medical_doctors <- read_excel("/Users/qingwenliu/Desktop/Edav/medical_doctors_per10000.xlsx", skip = 2)
+nursing_midwifery <- read_excel("/Users/qingwenliu/Desktop/Edav/nursing_midwifery_per10000.xlsx", skip = 2)
 
 # Calculate average medical doctors per 10,000 population by country
 country_avg_medical_doctors <- medical_doctors %>%
