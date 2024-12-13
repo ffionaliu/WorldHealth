@@ -53,7 +53,7 @@ ggplot(Death_rate,aes(x = percent, y = Average_life_expectancy)) +
   geom_smooth(method = "lm") +
   facet_wrap(~types) +
   geom_point(size = 2, alpha = 0.5) +  
-  labs(title = "Relationship between Life Expectancy and Air Pollution", x = "Air Pollution Percent", y = "Life expectancy") +
+  labs(title = "Relationship between Life Expectancy and Air Pollution", x = "Death Rate Due to Air Pollution(per 100,000 population)", y = "Life expectancy") +
   theme_minimal(base_size=12) +
   theme(
     plot.title = element_text(face = "bold", hjust = 0.5), # Center-align title
@@ -163,14 +163,25 @@ life_alcohol <- merge(life_expectancy_date,Heavy_drinking,by ="date")
 ggplot(life_alcohol) +
   geom_line(aes(x = date, y = Average_life_expectancy, color = "Life Expectancy"), size = 1) +
   geom_line(aes(x = date, y = alcohol_intake, color = "Alcohol Consumption"), size = 1) +
-  scale_color_viridis_d() +
-  labs(title = "Average Life Expectancy and Alcohol Intake", x = "Year", y = "Value") +
-  theme_minimal(base_size=12) +
+  scale_y_continuous(
+    name = "Average Life Expectancy (Years)",
+    sec.axis = sec_axis(~ ., name = "Alcohol Consumption (Grams)", labels = function(x) paste0(x))
+  ) +
+  scale_color_viridis_d(option = "D") + 
+  labs(
+    title = "Average Life Expectancy and Alcohol Consumption Over Time",
+    x = "Year"
+  ) +
+  theme_minimal(base_size = 12) +
   theme(
-    plot.title = element_text(face = "bold", hjust = 0.5), # Center-align title
-    plot.subtitle = element_text(hjust = 0.5), # Center-align subtitle
-    legend.title = element_blank()
+    plot.title = element_text(face = "bold", hjust = 0.5),
+    plot.subtitle = element_text(hjust = 0.5),
+    legend.title = element_blank(),
+    axis.title.y.left = element_text(color = "black"),
+    axis.title.y.right = element_text(color = "black"),
+    legend.position = "bottom"
   )
+  
 ```
 
 Turning to lifestyle factors, the multiple time series graph explores alcohol intake and average life expectancy from 2000 to 2020. Alcohol consumption shows a slight decline, especially after 2010, while life expectancy exhibits a steady upward trend, suggesting overall health improvements. The trends hint at a complex relationship: while alcohol intake slightly decreased, life expectancy’s growth slowed around the same period. This suggests that other factors, beyond alcohol consumption alone, may also shape life expectancy trends. 
@@ -186,7 +197,7 @@ ggplot(Alcohol, aes(x = alcohol_intake, y = Average_life_expectancy)) +
   geom_smooth(method = "loess", se = TRUE) + 
   scale_fill_viridis_d()+# Linear trend line
   labs(title = "Average Life Expectancy and Alcohol Consumption By Countries",
-       x = "Alcohol Consumption",
+       x = "Alcohol Consumption (grams)",
        y = "Life Expectancy") +
   theme_minimal(base_size=12) +
   theme(
@@ -215,15 +226,25 @@ smoke_date <- life_smoke_date |>
 
 ggplot(life_smoke_date) +
   geom_line(aes(x = date, y = Average_life_expectancy, color = "Life Expectancy"), size = 1) +
-  geom_line(aes(x = date, y = tobacco_use_prevalence, color = "Tobacco Use Prevalence"), size = 1) +
-  geom_line(aes(x = date, y = cigarette_prevalence, color = "Cigarette Prevalence"), size = 1) +
-  scale_color_viridis_d() +
-  labs(title = "Average Life Expectancy and Smoke Prevalence", x = "Year", y = "Value") +
-  theme_minimal(base_size=12) +
+  geom_line(aes(x = date, y = tobacco_use_prevalence, color = "Tobacco Use Prevalence(%)"), size = 1) +
+  geom_line(aes(x = date, y = cigarette_prevalence, color = "Cigarette Prevalence(%)"), size = 1) +
+  scale_y_continuous(
+    name = "Average Life Expectancy (Years)",
+    sec.axis = sec_axis(~ ., name = "Prevalence", labels = function(x) paste0(x,"%"))
+  ) +
+  scale_color_viridis_d(option = "D") + 
+  labs(
+    title = "Average Life Expectancy and Alcohol Consumption Over Time",
+    x = "Year"
+  ) +
+  theme_minimal(base_size = 12) +
   theme(
-    plot.title = element_text(face = "bold", hjust = 0.5), # Center-align title
-    plot.subtitle = element_text(hjust = 0.5), # Center-align subtitle
-    legend.title = element_blank()
+    plot.title = element_text(face = "bold", hjust = 0.5),
+    plot.subtitle = element_text(hjust = 0.5),
+    legend.title = element_blank(),
+    axis.title.y.left = element_text(color = "black"),
+    axis.title.y.right = element_text(color = "black"),
+    legend.position = "bottom"
   )
 ```
 
@@ -248,7 +269,7 @@ ggplot(smoke_country, aes(x = value, y = Average_life_expectancy)) +
   geom_smooth(method = "loess", se = TRUE) + 
   scale_fill_viridis_d()+# Linear trend line
   labs(title = "Life Expectancy and Smoking Prevalence By Countries",
-       x = "Smoking Prevalence",
+       x = "Smoking Prevalence(%)",
        y = "Life Expectancy") +
   theme_minimal(base_size=12) +
   theme(
@@ -299,7 +320,7 @@ ggplot(
   )
 ```
 
-The disparity in life expectancy across income groups is highlighted in the boxplot, which compares life expectancy at birth in 2024 across four World Bank income classifications: High income, Upper middle income, Lower middle income, and Low income. The High income group demonstrates the highest median life expectancy, slightly above 80 years, with a relatively narrow interquartile range (IQR), indicating low variability among countries in this category. A few outliers below 70 years suggest that some high-income countries experience lower-than-expected life expectancy. The Upper middle income group shows a median life expectancy of approximately 75 years, with a moderately wider IQR compared to the High income group, highlighting greater variability. The Lower middle income group exhibits a further decline in median life expectancy to around 70 years, accompanied by a wider IQR, suggesting even greater disparities within this category. The Low income group has the lowest median life expectancy, just above 60 years, with a wide range of variability and several outliers extending toward higher values, reflecting countries that outperform the average for this income group. This visualization underscores the strong positive correlation between national income levels and life expectancy while also highlighting the disparities and exceptions within each income category.
+The boxplot visualizes life expectancy across countries categorized by World Bank income groups for the year 2024. The income groups include High income, Upper middle income, Lower middle income, and Low income. The chart indicates a clear positive correlation between income levels and life expectancy. High-income countries exhibit the highest median life expectancy, around 80 years, with only one outliers. Upper middle-income countries have a slightly lower median life expectancy, with more noticeable outliers, indicating greater variability in life expectancy within this group. Lower middle-income countries follow, showing a further reduction in median life expectancy and a wider spread of data, reflecting a greater disparity in health outcomes. Finally, low-income countries have the lowest median life expectancy, roughly around 60 years, with a narrower range but significantly lower values overall. On one hand, the stark contrast between high-income and low-income countries, approximately a 20-year difference in median life expectancy, emphasizes the profound impact of economic disparities on health and longevity. On the other hand, the increased spread in middle-income countries highlights the challenges of inequality within nations, even as they experience economic growth. These countries often face uneven development, with urban centers benefiting from resources while rural or marginalized communities lag behind. To improve life expectancy globally, targeted interventions are needed. In low-income countries, efforts should focus on improving access to clean water, sanitation, basic healthcare, and nutrition. For middle-income countries, addressing internal disparities through investments in equitable healthcare and infrastructure is essential.
 
 ```{r}
 # Identify Top 20 and Bottom 20 countries by average life expectancy
